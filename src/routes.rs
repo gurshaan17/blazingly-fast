@@ -1,37 +1,3 @@
-mod routes;
-
-use axum::{
-    Router,
-    routing::{get, post},
-};
-use sqlx::postgres::PgPoolOptions;
-use std::net::SocketAddr;
-
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // Database connection
-    let database_url = "postgres://postgres:postgres@localhost:5432/postgres";
-    let pool = PgPoolOptions::new()
-        .max_connections(5)
-        .connect(database_url)
-        .await?;
-    
-    // Build our application with routes
-    let app = Router::new()
-        .route("/url", post(routes::create_url))
-        .route("/url/:id", get(routes::get_url))
-        .with_state(pool);
-
-    let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
-    println!("Server running on http://{}", addr);
-    
-    let listener = tokio::net::TcpListener::bind(addr).await?;
-    axum::serve(listener, app).await?;
-    
-    Ok(())
-}
-
-// routes.rs
 use axum::{
     extract::{Path, State},
     response::Json,
@@ -47,7 +13,7 @@ pub struct CreateUrl {
     target_url: String,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, sqlx::FromRow)]
 pub struct UrlResponse {
     id: String,
     target_url: String,
@@ -64,12 +30,11 @@ pub async fn create_url(
 ) -> Result<Json<UrlResponse>, (StatusCode, String)> {
     let id = generate_short_id();
     
-    let result = sqlx::query_as!(
-        UrlResponse,
-        "INSERT INTO links (id, target_url) VALUES ($1, $2) RETURNING id, target_url",
-        id,
-        payload.target_url
+    let result = sqlx::query_as::<_, UrlResponse>(
+        "INSERT INTO links (id, target_url) VALUES ($1, $2) RETURNING id, target_url"
     )
+    .bind(&id)
+    .bind(&payload.target_url)
     .fetch_one(&pool)
     .await
     .map_err(|e| {
@@ -83,11 +48,10 @@ pub async fn get_url(
     State(pool): State<PgPool>,
     Path(id): Path<String>,
 ) -> Result<Json<UrlResponse>, (StatusCode, String)> {
-    let result = sqlx::query_as!(
-        UrlResponse,
-        "SELECT id, target_url FROM links WHERE id = $1",
-        id
+    let result = sqlx::query_as::<_, UrlResponse>(
+        "SELECT id, target_url FROM links WHERE id = $1"
     )
+    .bind(id)
     .fetch_optional(&pool)
     .await
     .map_err(|e| {
