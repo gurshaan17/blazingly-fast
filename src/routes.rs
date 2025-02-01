@@ -3,7 +3,6 @@ use axum::{
     response::Json,
     http::StatusCode,
 };
-use base64::{Engine, engine::general_purpose};
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
@@ -19,16 +18,21 @@ pub struct UrlResponse {
     target_url: String,
 }
 
-fn generate_short_id() -> String {
-    let random_number = rand::thread_rng().gen_range(0..u32::MAX);
-    general_purpose::URL_SAFE_NO_PAD.encode(random_number.to_string())
+fn generate_short_id(length: usize) -> String {
+    const CHARSET: &[u8] = b"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    (0..length)
+        .map(|_| {
+            let index = rand::thread_rng().gen_range(0..CHARSET.len());
+            CHARSET[index] as char
+        })
+        .collect()
 }
 
 pub async fn create_url(
     State(pool): State<PgPool>,
     Json(payload): Json<CreateUrl>,
 ) -> Result<Json<UrlResponse>, (StatusCode, String)> {
-    let id = generate_short_id();
+    let id = generate_short_id(7);
     
     let result = sqlx::query_as::<_, UrlResponse>(
         "INSERT INTO links (id, target_url) VALUES ($1, $2) RETURNING id, target_url"
