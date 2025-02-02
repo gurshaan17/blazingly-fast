@@ -31,7 +31,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .route("/cleanup", post(routes::cleanup_expired_links))
         .with_state((pool, cleanup_state));
 
-    let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
+    let addr = SocketAddr::from(([127, 0, 0, 1], 8080));
     println!("Server running on http://{}", addr);
 
     // Start the server using hyper

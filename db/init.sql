@@ -1,6 +1,0 @@
-CREATE TABLE links (
-    id VARCHAR(10) PRIMARY KEY,
-    target_url TEXT NOT NULL,
-    expiration TIMESTAMP WITH TIME ZONE NOT NULL,
-    usage_count BIGINT NOT NULL DEFAULT 0
-);
