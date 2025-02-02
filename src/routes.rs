@@ -1,7 +1,8 @@
 use axum::{
     extract::{Path, State},
-    response::Json,
+    response::{Json, Redirect},
     http::StatusCode,
+    response::IntoResponse,
 };
 use rand::Rng;
 use serde::{Deserialize, Serialize};
@@ -51,7 +52,7 @@ pub async fn create_url(
 pub async fn get_url(
     State(pool): State<PgPool>,
     Path(id): Path<String>,
-) -> Result<Json<UrlResponse>, (StatusCode, String)> {
+) -> Result<impl IntoResponse, (StatusCode, String)> {
     let result = sqlx::query_as::<_, UrlResponse>(
         "SELECT id, target_url FROM links WHERE id = $1"
     )
@@ -63,7 +64,7 @@ pub async fn get_url(
     })?;
 
     match result {
-        Some(url) => Ok(Json(url)),
+        Some(url) => Ok(Redirect::to(&url.target_url)),
         None => Err((StatusCode::NOT_FOUND, "URL not found".to_string())),
     }
 }
