@@ -26,7 +26,7 @@ pub struct UrlResponse {
 }
 
 fn generate_short_id(length: usize) -> String {
-    const CHARSET: &[u8] = b"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    const CHARSET: &[u8] = b"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
     (0..length)
         .map(|_| {
             let idx = rand::thread_rng().gen_range(0..CHARSET.len());
@@ -79,11 +79,11 @@ pub async fn get_url(
     match url {
         Some(url) => {
             if Utc::now() > url.expiration {
-                return Err((StatusCode::NOT_FOUND, "URL has expired".to_string()));
+                return Err((StatusCode::FORBIDDEN, "URL has expired".to_string()));
             }
             
             if url.usage_count >= 5000 {
-                return Err((StatusCode::NOT_FOUND, "URL usage limit exceeded".to_string()));
+                return Err((StatusCode::TOO_MANY_REQUESTS, "URL usage limit exceeded".to_string()));
             }
 
             // Update usage count

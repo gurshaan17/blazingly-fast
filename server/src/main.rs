@@ -11,12 +11,14 @@ use crate::routes::{CleanupState, start_cleanup_task};
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let database_url = std::env::var("DATABASE_URL")
-        .unwrap_or_else(|_| "postgres://postgres:postgres@localhost:5432/postgres".to_string());
+        .unwrap_or_else(|_| "postgres://postgres:postgres@localhost:5432/".to_string());
     
     let pool = PgPoolOptions::new()
         .max_connections(5)
         .connect(&database_url)
         .await?;
+    println!("Connected to the database successfully.");
+    
 
     // Initialize cleanup state
     let cleanup_state = CleanupState::new();
@@ -26,12 +28,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Create a router with shared state
     let app = Router::new()
+        .route("/", get(|| async { "Server is running" }))
         .route("/url", post(routes::create_url))
         .route("/url/:id", get(routes::get_url))
         .route("/cleanup", post(routes::cleanup_expired_links))
         .with_state((pool, cleanup_state));
 
-    let addr = SocketAddr::from(([127, 0, 0, 1], 8080));
+    let addr = SocketAddr::from(([0, 0, 0, 0], 8080));
     println!("Server running on http://{}", addr);
 
     // Start the server using hyper

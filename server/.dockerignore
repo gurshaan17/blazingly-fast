@@ -1,0 +1,10 @@
+target
+**/*.rs.bk
+**/*.toml.bk
+**/*.sql
+**/*.yaml
+**/*.yml
+**/*.md
+Dockerfile
+.git/
+.gitignore
