@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import './App.css';
 
 const apiUrl = "http://141.148.211.138:8080";
 
@@ -13,7 +14,6 @@ const URLShortener = () => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
-
     try {
       const response = await axios.post(`${apiUrl}/url`, {
         target_url: longUrl,
@@ -34,72 +34,71 @@ const URLShortener = () => {
   };
 
   return (
-    <div className="container">
-      <div className="card">
-        <div className="card-header">
+    <div>
+    <div className="url-shortener-container">
+      <div className="url-shortener-card">
+        <div className="url-shortener-header">
           <h1>URL Shortener</h1>
           <p>Simplify your links in seconds</p>
         </div>
-        <div className="card-content">
-          <form onSubmit={handleSubmit} className="form">
-            <div className="input-group">
-              <label htmlFor="longUrl">Long URL</label>
+        
+        <form onSubmit={handleSubmit} className="url-shortener-form">
+          <div className="input-group">
+            <label htmlFor="longUrl">Long URL</label>
+            <input
+              id="longUrl"
+              type="url"
+              placeholder="https://example.com/very/long/url"
+              value={longUrl}
+              onChange={(e) => setLongUrl(e.target.value)}
+              style={{background: "white"}}
+              required
+            />
+          </div>
+          
+          <button
+            type="submit"
+            disabled={isLoading}
+          >
+            {isLoading ? 'Shortening...' : 'Shorten URL'}
+          </button>
+        </form>
+
+        {error && <p className="error-message">{error}</p>}
+
+        {shortUrl && (
+          <div className="result-section">
+            <label htmlFor="shortUrl">Shortened URL</label>
+            <div className="short-url-container">
               <input
-                id="longUrl"
+                id="shortUrl"
                 type="url"
-                placeholder="https://example.com/very/long/url"
-                value={longUrl}
-                onChange={(e) => setLongUrl(e.target.value)}
-                required
+                value={`${apiUrl}/url/${shortUrl}`}
+                readOnly
               />
+              <button onClick={copyToClipboard}>Copy</button>
             </div>
-            <button 
-              type="submit" 
-              className="submit-button"
-              disabled={isLoading}
+            <a
+              href={`${apiUrl}/url/${shortUrl}`}
+              target="_blank"
+              rel="noopener noreferrer"
             >
-              {isLoading ? 'Shortening...' : 'Shorten URL'}
-            </button>
-          </form>
+              Open shortened URL
+            </a>
+          </div>
+        )}
 
-          {error && <p className="error">{error}</p>}
-
-          {shortUrl && (
-            <div className="result">
-              <label htmlFor="shortUrl">Shortened URL</label>
-              <div className="flex">
-                <input
-                  id="shortUrl"
-                  type="url"
-                  value={`${apiUrl}/${shortUrl}`}
-                  readOnly
-                />
-                <button onClick={copyToClipboard} className="copy-button">
-                  Copy
-                </button>
-              </div>
-              <a
-                href={`${apiUrl}/${shortUrl}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="link"
-              >
-                Open shortened URL
-              </a>
-            </div>
-          )}
-        </div>
+        <footer className="url-shortener-footer">
+          <a
+            href="https://github.com/gurshaan17/blazingly-fast"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            GitHub
+          </a>
+        </footer>
       </div>
-
-      <footer className="footer">
-        <a
-          href="https://github.com/gurshaan17/blazingly-fast"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          GitHub
-        </a>
-      </footer>
+    </div>
     </div>
   );
 };
