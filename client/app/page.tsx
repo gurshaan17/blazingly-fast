@@ -1,101 +1,157 @@
-import Image from "next/image";
+'use client'
 
-export default function Home() {
+import { useState, useEffect } from 'react'
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Label } from "@/components/ui/label"
+import { ArrowRight, Copy, Link, Scissors, Moon, Sun, Github, QrCode } from "lucide-react"
+import { useTheme } from "next-themes"
+import axios from 'axios'
+
+const apiUrl = process.env.NEXT_PUBLIC_API_URL
+const feUrl = process.env.NEXT_PUBLIC_FE_URL
+
+export default function URLShortener() {
+  const [longUrl, setLongUrl] = useState('')
+  const [shortUrl, setShortUrl] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState('')
+  const { theme, setTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
+
+  // Move useEffect to the top level
+  useEffect(() => {
+    // Ensure theme is initialized
+    if (typeof window !== 'undefined') {
+      setMounted(true)
+      // Set initial theme if none exists
+      if (!theme) {
+        setTheme('light')
+      }
+    }
+  }, [theme, setTheme])
+
+  // Don't render anything until mounted
+  if (!mounted) {
+    return null
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError('');
+  
+    try {
+      const response = await axios.post<{
+        data: any 
+      }>(
+        `${apiUrl}/shorten`, 
+        {
+          url: longUrl 
+        }
+      );
+      setShortUrl(response.data.data.shortUrl);
+    } catch (err) {
+      setError('Failed to shorten URL. Please try again.');
+      console.error('Error:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(`https://shorturl17.vercel.app/${shortUrl}`)
+      .then(() => alert('Copied to clipboard!'))
+      .catch(() => alert('Failed to copy. Please try manually.'))
+  }
+
+  const toggleTheme = () => {
+    setTheme(theme === 'light' ? 'dark' : 'light')
+  }
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      <Card className="w-full max-w-md mx-auto shadow-lg transition-all duration-300 hover:shadow-xl">
+        <CardHeader className="text-center relative">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute right-4 top-4"
+            onClick={toggleTheme}
+          >
+            {theme === 'light' ? <Moon className="h-[1.2rem] w-[1.2rem]" /> : <Sun className="h-[1.2rem] w-[1.2rem]" />}
+          </Button>
+          <CardTitle className="text-3xl font-bold mb-2 text-primary">URL Shortener</CardTitle>
+          <CardDescription className="text-lg">Simplify your links in seconds</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="longUrl" className="text-lg font-medium">Long URL</Label>
+              <div className="relative">
+                <Input
+                  id="longUrl"
+                  type="url"
+                  placeholder="https://example.com/very/long/url"
+                  value={longUrl}
+                  onChange={(e) => setLongUrl(e.target.value)}
+                  required
+                  className="pr-10 transition-all duration-300 focus:ring-2 focus:ring-primary"
+                />
+                <Scissors className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
+              </div>
+            </div>
+            <Button 
+              type="submit" 
+              className="w-full text-lg py-6 transition-all duration-300 hover:bg-primary/90 border border-white"
+              disabled={isLoading}
+            >
+              {isLoading ? 'Shortening...' : 'Shorten URL'}
+            </Button>
+          </form>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
+          {error && <p className="text-destructive mt-4 text-center">{error}</p>}
+
+          {shortUrl && (
+            <div className="mt-6 space-y-2 animate-fade-in">
+              <Label htmlFor="shortUrl" className="text-lg font-medium">Shortened URL</Label>
+              <div className="flex items-center space-x-2">
+                <Input
+                  id="shortUrl"
+                  type="url"
+                  value={`https://shorturl17.vercel.app/${shortUrl}`}
+                  readOnly
+                  className="flex-grow transition-all duration-300 focus:ring-2 focus:ring-primary"
+                />
+                <Button size="icon" onClick={copyToClipboard} className="transition-all duration-300 hover:bg-primary/90">
+                  <Copy className="h-4 w-4" />
+                </Button>
+              </div>
+              <a
+                href={shortUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center text-sm text-primary hover:underline mt-2 transition-all duration-300"
+              >
+                <Link className="h-4 w-4 mr-1" />
+                Open shortened URL
+                <ArrowRight className="h-4 w-4 ml-1" />
+              </a>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+      <footer className="mt-auto flex gap-4 py-4">
         <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
+          href="https://github.com/gurshaan17/blazingly-fast"
           target="_blank"
           rel="noopener noreferrer"
+          className="text-gray-600 hover:text-blue-500 transition-colors"
         >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
+          <Github className="w-6 h-6" />
         </a>
       </footer>
     </div>
-  );
+  )
 }
