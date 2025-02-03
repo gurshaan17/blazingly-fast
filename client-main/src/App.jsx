@@ -51,7 +51,7 @@ const URLShortener = () => {
               placeholder="https://example.com/very/long/url"
               value={longUrl}
               onChange={(e) => setLongUrl(e.target.value)}
-              style={{background: "white"}}
+              // style={{background: "white"}}
               required
             />
           </div>
