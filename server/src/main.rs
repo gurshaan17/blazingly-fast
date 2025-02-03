@@ -1,5 +1,3 @@
-mod routes;
-
 use axum::{
     Router,
     routing::{get, post},
@@ -7,10 +5,17 @@ use axum::{
 use sqlx::postgres::PgPoolOptions;
 use std::net::SocketAddr;
 use crate::routes::{CleanupState, start_cleanup_task};
+use dotenv::dotenv;
+use std::env;
+mod routes;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let database_url = std::env::var("DATABASE_URL")
+    // Load environment variables from the .env file
+    dotenv().ok();
+    
+    // Retrieve the database URL from environment variables
+    let database_url = env::var("DATABASE_URL")
         .unwrap_or_else(|_| "postgres://postgres:postgres@localhost:5432/".to_string());
     
     let pool = PgPoolOptions::new()
@@ -19,7 +24,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .await?;
     println!("Connected to the database successfully.");
     
-
     // Initialize cleanup state
     let cleanup_state = CleanupState::new();
     
