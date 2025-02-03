@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import './App.css';
 
-const apiUrl = "http://141.148.211.138:8080";
+const apiUrl = "https://be.gurshaan.xyz";
 
 const URLShortener = () => {
   const [longUrl, setLongUrl] = useState('');
