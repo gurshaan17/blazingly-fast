@@ -121,11 +121,3 @@ Blazingly Fast is a URL shortener service built with Rust using the Axum framewo
   ```
 
 - **Description:** Manually triggers the cleanup of expired links. This is usually done automatically every 5 minutes.
-
-## Contributing
-
-Contributions are welcome! Please open an issue or submit a pull request for any improvements or bug fixes.
-
-## License
-
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
